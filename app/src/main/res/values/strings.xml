@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2017 The Android Open Source Project
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<resources>
+  <string name="app_name">Things LoWPAN Sample</string>
+
+  <string name="button_scan">Scan</string>
+  <string name="button_demo">Sender</string>
+  <string name="button_receiver">Receiver</string>
+  <string name="button_leave">Leave</string>
+  <string name="button_connect">Connect</string>
+  <string name="button_disconnect">Disconnect</string>
+  <string name="button_can_assist">Can Assist</string>
+  <string name="button_join">Join</string>
+
+  <string name="checkbox_enabled">Enabled</string>
+  <string name="checkbox_interface_up">IfaceUp</string>
+  <string name="checkbox_connected">Connected</string>
+  <string name="checkbox_provisioned">Provisioned</string>
+
+  <string name="error_no_lowpans">No LoWPAN interfaces found</string>
+  <string name="error_join_title">Joining Error</string>
+  <string name="error_no_lowpan_interface">No LoWPAN Interface</string>
+  <string name="error_scan_failed">Scan Failed</string>
+
+  <string name="label_main_activity">Main Activity</string>
+  <string name="label_lowpan_demo">Sender Activity</string>
+  <string name="label_lowpan_scan_activity">Network Scan</string>
+
+  <string name="progress_joining">Joining...</string>
+  <string name="progress_scanning">Scanning...</string>
+
+  <string name="state_unknown">unknown</string>
+
+  <string name="warning_no_network">No Network</string>
+
+  <string name="ready_to_scan">Ready to Scan</string>
+  <string name="lqi">LQI</string>
+  <string name="rssi">RSSI</string>
+  <string name="chan">CHAN</string>
+  <string name="panid">PANID</string>
+  <string name="scan_finished">Finished Scanning</string>
+  <string name="connected">Connected</string>
+  <string name="connecting">Connecting...</string>
+  <string name="disconnected">Disconnected</string>
+  <string name="receiver_title_connected">Listening</string>
+  <string name="label_receiver_activity">Receiver Activity</string>
+  <string name="button_provision">New Network</string>
+  <string name="ready">Ready</string>
+  <string name="socket_interrupted">Socket interrupted</string>
+  <string name="status_new_network">New network: %1$s</string>
+  <string name="status_new_network_error">Cannot create new network: %1$s</string>
+</resources>

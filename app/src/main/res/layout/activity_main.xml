@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2017 The Android Open Source Project
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <TextView
+      android:id="@+id/ifaceName"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="8dp"
+      android:layout_marginTop="8dp"
+      tools:text="wpanX"
+      android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+      android:textSize="36sp"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+  <TextView
+      android:id="@+id/state"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="8dp"
+      android:layout_marginTop="8dp"
+      tools:text="State"
+      android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/ifaceName" />
+
+  <TextView
+      android:id="@+id/role"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="16dp"
+      android:layout_marginTop="8dp"
+      tools:text="Role"
+      android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+      app:layout_constraintTop_toBottomOf="@+id/ifaceName"
+      app:layout_constraintLeft_toRightOf="@+id/state" />
+
+  <TextView
+      android:id="@+id/networkName"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="36dp"
+      android:layout_marginLeft="24dp"
+      android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+      android:textSize="36sp"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/role"
+      tools:text="Network Name"/>
+
+  <CheckBox
+      android:id="@+id/isEnabled"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="8dp"
+      android:layout_marginTop="8dp"
+      android:text="@string/checkbox_enabled"
+      android:clickable="true"
+      android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large"
+      android:button="@null"
+      android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
+      app:layout_constraintRight_toRightOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      android:focusable="true" />
+
+  <Button
+      android:id="@+id/scanButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginStart="24dp"
+      app:layout_constraintHorizontal_weight="1"
+      android:text="@string/button_scan"
+      style="@style/lowpan_button"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintLeft_toLeftOf="parent" />
+
+  <Button
+      android:id="@+id/sendButton"
+      style="@style/lowpan_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      app:layout_constraintHorizontal_weight="1"
+      android:text="@string/button_demo"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintLeft_toRightOf="@+id/scanButton"
+      app:layout_constraintRight_toLeftOf="@+id/receiverButton"/>
+
+  <Button
+      android:id="@+id/receiverButton"
+      style="@style/lowpan_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      app:layout_constraintHorizontal_weight="1"
+      android:text="@string/button_receiver"
+      app:layout_constraintLeft_toRightOf="@+id/sendButton"
+      app:layout_constraintRight_toLeftOf="@+id/leaveButton"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintRight_toRightOf="parent"/>
+
+  <Button
+      android:id="@+id/leaveButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginEnd="24dp"
+      app:layout_constraintHorizontal_weight="1"
+      android:text="@string/button_leave"
+      style="@style/lowpan_button"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintRight_toRightOf="parent" />
+
+</android.support.constraint.ConstraintLayout>
