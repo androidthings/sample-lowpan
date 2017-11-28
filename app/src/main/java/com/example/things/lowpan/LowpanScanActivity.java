@@ -145,6 +145,9 @@ public class LowpanScanActivity extends Activity {
         }
     }
 
+    /**
+     * Start to scan for nearby LoWPAN networks that this device can join.
+     */
     private void onBeginScan() {
         // Start scanning for networks
         LinearLayout beaconsView = findViewById(R.id.beacons);
@@ -173,6 +176,9 @@ public class LowpanScanActivity extends Activity {
         scanButton.setClickable(false);
     }
 
+    /**
+     * Form a new network with a randomly-generated name and connect to it.
+     */
     private void onCreateNewNetwork() {
         Random random = new Random();
         // Generate a new network name that is easily unique, ie. "LoWPAN_142"
@@ -196,6 +202,11 @@ public class LowpanScanActivity extends Activity {
         }
     }
 
+    /**
+     * Add a newly discovered LoWPAN network to the list of nearby LoWPAN networks.
+     *
+     * @param beacon The LoWPAN network that was discovered.
+     */
     private void onNetScanBeacon(LowpanBeaconInfo beacon) {
         // Display information about each beacon when it is discovered.
         LinearLayout beaconsView = findViewById(R.id.beacons);
@@ -236,6 +247,11 @@ public class LowpanScanActivity extends Activity {
         Log.d(TAG, "Added beacon: " + beacon.toString());
     }
 
+    /**
+     * Attempt to join a particular LoWPAN network.
+     *
+     * @param beaconInfo The LoWPAN network to connect to.
+     */
     private void onJoinBeaconInfo(LowpanBeaconInfo beaconInfo) {
         // Try to join a network with a particular name and a standard key
         LowpanProvisioningParams params = new LowpanProvisioningParams.Builder()
@@ -257,6 +273,9 @@ public class LowpanScanActivity extends Activity {
         }
     }
 
+    /**
+     * A callback that is run when the scan is complete.
+     */
     private void onScanFinished() {
         // Network scan is complete
         TextView scanStatus = findViewById(R.id.scanStatus);

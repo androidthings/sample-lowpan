@@ -45,7 +45,7 @@ public class SenderActivity extends Activity {
     private int mSeekBarValue = 0;
 
     // The LoWPAN device address that you want to connect to
-    private static final String SERVER_ADDRESS = "fe80::20d:6f00:53b:8022";
+    private static final String SERVER_ADDRESS = "<DEVICE_SERVER_ADDRESS>";
     private static final int SERVER_PORT = 23456;
 
     private ConnectivityManager.NetworkCallback mConnectivityManagerNetworkCallback =
@@ -108,22 +108,29 @@ public class SenderActivity extends Activity {
         mConnectivityManager.unregisterNetworkCallback(mConnectivityManagerNetworkCallback);
     }
 
+    /**
+     * Connect to other devices on the network.
+     */
     private void connect() {
-        // Connect to other devices on the network
         if (mSocket == null) {
             Log.i(TAG, "connect requested");
             new ConnectTask().execute();
         }
     }
 
+    /**
+     * Disconnect from other devices on the network.
+     */
     private void disconnect() {
-        // Disconnect from other devices on the network
         if (mSocket != null) {
             Log.i(TAG, "disconnect requested");
             new DisconnectTask().execute();
         }
     }
 
+    /**
+     * Initializes the network.
+     */
     private void resetNetwork() {
         // Initialize network
         onNoNetwork();
@@ -137,6 +144,9 @@ public class SenderActivity extends Activity {
                 mConnectivityManagerNetworkCallback, mHandler);
     }
 
+    /**
+     * Updates the UI when this device is in the process of connecting to the network.
+     */
     private void onConnecting() {
         Log.i(TAG, "onConnecting");
         Button connectButton = findViewById(R.id.connectButton);
@@ -149,6 +159,9 @@ public class SenderActivity extends Activity {
         statusView.setText(R.string.connecting);
     }
 
+    /**
+     * Updates the UI when this device is connected to the network.
+     */
     private void onConnected() {
         Log.i(TAG, "onConnected");
         Button connectButton = findViewById(R.id.connectButton);
@@ -161,6 +174,9 @@ public class SenderActivity extends Activity {
         statusView.setText(R.string.connected);
     }
 
+    /**
+     * Updates the UI when this device is disconnected from the network.
+     */
     private void onDisconnected() {
         Log.i(TAG, "onDisconnected");
         Button connectButton = findViewById(R.id.connectButton);
@@ -173,6 +189,11 @@ public class SenderActivity extends Activity {
         statusView.setText(R.string.disconnected);
     }
 
+    /**
+     * Sends a new value of the seekbar to the connected device.
+     *
+     * @param newValue The new value of the seekbar to send.
+     */
     private void onSeekBarValueChanged(int newValue) {
         if (mSeekBarValue != newValue) {
             mSeekBarValue = newValue;
@@ -184,6 +205,9 @@ public class SenderActivity extends Activity {
         }
     }
 
+    /**
+     * Updates the UI when no network has been detected.
+     */
     private void onNoNetwork() {
         Log.i(TAG, "No network found");
         Button connectButton = findViewById(R.id.connectButton);
@@ -208,7 +232,7 @@ public class SenderActivity extends Activity {
 
             try {
                 // Open a connection to the receiving device
-                InetAddress serverAddr = mNetwork.getByName(SERVER_ADDRESS + "%wpan0");
+                InetAddress serverAddr = mNetwork.getByName(SERVER_ADDRESS);
                 if (serverAddr == null) {
                     // Unable to find the receiving device
                     Log.e(TAG, "doInBackground: Host lookup failed.");

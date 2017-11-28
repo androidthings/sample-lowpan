@@ -96,6 +96,11 @@ public class ReceiverActivity extends Activity {
         }
     }
 
+    /**
+     * Callback that is run when a new device connects to this device.
+     *
+     * @param socket The network socket that they are connected to.
+     */
     private void onNewConnection(Socket socket) {
         // A new device is connected
         onNewValue(DISPLAY_CONN);
@@ -108,6 +113,11 @@ public class ReceiverActivity extends Activity {
         mSocketThread.start();
     }
 
+    /**
+     * Callback that is run when a new value is received from another device.
+     *
+     * @param value The value that was received.
+     */
     private void onNewValue(String value) {
         mHandler.post(() -> {
             try {
@@ -120,6 +130,11 @@ public class ReceiverActivity extends Activity {
         });
     }
 
+    /**
+     * Callback that is run when the connection status has changed, to update the UI.
+     *
+     * @param status The new connection status.
+     */
     private void onStatusChanged(String status) {
         mHandler.post(() -> {
             // Update the connection status on the TextView
@@ -128,6 +143,7 @@ public class ReceiverActivity extends Activity {
     }
 
     private class ServerThread implements Runnable {
+        @Override
         public void run() {
             try {
                 // Connect to socket
@@ -158,6 +174,7 @@ public class ReceiverActivity extends Activity {
             mSocket = socket;
         }
 
+        @Override
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -180,6 +197,7 @@ public class ReceiverActivity extends Activity {
                     break;
                 }
             }
+
             // Thread was interrupted
             onNewValue(DISPLAY_INTER);
             onStatusChanged(getString(R.string.socket_interrupted));

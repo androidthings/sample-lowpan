@@ -38,38 +38,39 @@ public class MainActivity extends Activity {
     private LowpanInterface mLowpanInterface;
     private DemoLowpanManagerCallback mLowpanManagerCallback;
     private DemoLowpanInterfaceCallback mLowpanInterfaceCallback;
-    private LowpanInterface.Callback mLeaveCallback = new LowpanInterface.Callback() {
-        @Override
-        public void onStateChanged(int state) {
-            if (state == LowpanInterface.STATE_OFFLINE) {
-                // Successfully left the network
-                refreshValues();
-            }
-        }
 
-        @Override
-        public void onProvisionException(Exception e) {
-            Log.e(TAG, "Unable to leave network", e);
-        }
-    };
+    private Button mScanButton;
+    private Button mSendButton;
+    private Button mReceiverButton;
+    private Button mLeaveButton;
+    private CheckBox mEnabledCheckbox;
+    private TextView mInterfaceName;
+    private TextView mStateView;
+    private TextView mRoleView;
+    private TextView mNetworkNameView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // Setup UI elements
-        Button scanButton = findViewById(R.id.scanButton);
-        Button leaveButton = findViewById(R.id.leaveButton);
-        Button demoButton = findViewById(R.id.sendButton);
-        Button receiverButton = findViewById(R.id.receiverButton);
-        CheckBox enabledCheckbox = findViewById(R.id.isEnabled);
+        mScanButton = findViewById(R.id.scanButton);
+        mLeaveButton = findViewById(R.id.leaveButton);
+        mSendButton = findViewById(R.id.sendButton);
+        mReceiverButton = findViewById(R.id.receiverButton);
+        mEnabledCheckbox = findViewById(R.id.isEnabled);
+
+        mInterfaceName = findViewById(R.id.ifaceName);
+        mStateView = findViewById(R.id.state);
+        mRoleView = findViewById(R.id.role);
+        mNetworkNameView = findViewById(R.id.networkName);
 
         // Set events to each UI element when a click occurs
-        scanButton.setOnClickListener((buttonView) -> onScanActivity());
-        demoButton.setOnClickListener((buttonView) -> onSenderActivity());
-        receiverButton.setOnClickListener((buttonView) -> onReceiverActivity());
-        leaveButton.setOnClickListener((buttonView) -> onLeave());
-        enabledCheckbox.setOnCheckedChangeListener(this::onEnabledChanged);
+        mScanButton.setOnClickListener((buttonView) -> onScanActivity());
+        mSendButton.setOnClickListener((buttonView) -> onSenderActivity());
+        mReceiverButton.setOnClickListener((buttonView) -> onReceiverActivity());
+        mLeaveButton.setOnClickListener((buttonView) -> onLeave());
+        mEnabledCheckbox.setOnCheckedChangeListener(this::onEnabledChanged);
 
         mLowpanManagerCallback = new DemoLowpanManagerCallback();
         mLowpanInterfaceCallback = new DemoLowpanInterfaceCallback();
@@ -87,7 +88,7 @@ public class MainActivity extends Activity {
 
         LowpanInterface lowpanInterface = mLowpanManager.getInterface();
         if (lowpanInterface != null) {
-            onLowpanInterfaceAdded(lowpanInterface);
+            mLowpanManagerCallback.onInterfaceAdded(lowpanInterface);
         } else {
             Log.e(TAG, "No LoWPAN interfaces found");
         }
@@ -104,36 +105,52 @@ public class MainActivity extends Activity {
         mLowpanManager.unregisterCallback(mLowpanManagerCallback);
     }
 
+    /**
+     * Switches to the scan activity.
+     */
     private void onScanActivity() {
         // Start scanning for networks
         Intent intent = new Intent(MainActivity.this, LowpanScanActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Switches to the sender activity.
+     */
     private void onSenderActivity() {
         // Start sending data to another device
         Intent intent = new Intent(MainActivity.this, SenderActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Switches to the receiver activity.
+     */
     private void onReceiverActivity() {
         // Start receiving data from another device
         Intent intent = new Intent(MainActivity.this, ReceiverActivity.class);
         startActivity(intent);
     }
 
+    /**
+     * Tries to leave a currently-connected LoWPAN network.
+     */
     private void onLeave() {
         try {
             // Leave the current network
             mLowpanInterface.leave();
-            // Register callback to handle success or failure
-            mLowpanInterface.registerCallback(mLeaveCallback);
         } catch (LowpanException e) {
             Log.e(TAG, "Leaving LoWPAN network failed", e);
         }
         refreshValues();
     }
 
+    /**
+     * Allows the LoWPAN network to be enabled or disabled with a Checkbox.
+     *
+     * @param checkBox The Checkbox widget
+     * @param value Whether the box was checked.
+     */
     private void onEnabledChanged(CompoundButton checkBox, boolean value) {
         if (mLowpanInterface != null) {
             if (value != mLowpanInterface.isEnabled()) {
@@ -147,108 +164,117 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Change the values displayed in the UI.
+     */
     private void refreshValues() {
-        // Change the values displayed in the UI
-        TextView ifaceName = findViewById(R.id.ifaceName);
-        TextView stateView = findViewById(R.id.state);
-        TextView roleView = findViewById(R.id.role);
-        TextView networkNameView = findViewById(R.id.networkName);
-        CheckBox enabledView = findViewById(R.id.isEnabled);
-        Button scanButton = findViewById(R.id.scanButton);
-        Button leaveButton = findViewById(R.id.leaveButton);
-        Button sendButton = findViewById(R.id.sendButton);
-
         if (mLowpanInterface != null) {
             // A LoWPAN interface was found for this device
-            ifaceName.setText(mLowpanInterface.getName());
-            stateView.setText(Utils.stateToString(mLowpanInterface.getState()));
-            roleView.setText(Utils.roleToString(mLowpanInterface.getRole()));
-            enabledView.setEnabled(true);
+            mInterfaceName.setText(mLowpanInterface.getName());
+            mStateView.setText(Utils.stateToString(mLowpanInterface.getState()));
+            mRoleView.setText(Utils.roleToString(mLowpanInterface.getRole()));
+            mEnabledCheckbox.setEnabled(true);
 
-            if (mLowpanInterface.isEnabled()) {
-                // The LoWPAN interface is enabled
-                enabledView.setChecked(true);
-                scanButton.setEnabled(true);
-                sendButton.setEnabled(mLowpanInterface.getState() == LowpanInterface.STATE_ATTACHED);
-
-                if (mLowpanInterface.isProvisioned()) {
-                    // The LoWPAN interface is connected to a network
-                    leaveButton.setEnabled(true);
-                    LowpanProvisioningParams provisioningParams =
-                            mLowpanInterface.getLowpanProvisioningParams(false);
-                    if (provisioningParams != null) {
-                        networkNameView.setText(provisioningParams.getLowpanIdentity().getName());
-                    }
-                } else {
-                    // The LoWPAN interface is not connected to a network
-                    leaveButton.setEnabled(false);
-                    networkNameView.setText("");
-                }
-
-            } else {
-                // Display that the LoWPAN interface is not enabled
-                enabledView.setChecked(false);
-                scanButton.setEnabled(false);
-                leaveButton.setEnabled(false);
-                sendButton.setEnabled(false);
-                networkNameView.setText("");
-            }
+            refreshLowpanInterfaceEnabled(mLowpanInterface.isEnabled());
+            refreshLowpanIsProvisioned(mLowpanInterface.isProvisioned());
 
         } else {
             // Display that there is no LoWPAN interfaces found
-            ifaceName.setText(R.string.error_no_lowpans);
-            stateView.setText("");
-            roleView.setText("");
-            networkNameView.setText("");
-            enabledView.setChecked(false);
-            enabledView.setEnabled(false);
-            scanButton.setEnabled(false);
-            leaveButton.setEnabled(false);
-            sendButton.setEnabled(false);
+            mInterfaceName.setText(R.string.error_no_lowpans);
+            mStateView.setText("");
+            mRoleView.setText("");
+            mNetworkNameView.setText("");
+            mEnabledCheckbox.setChecked(false);
+            mEnabledCheckbox.setEnabled(false);
+            mScanButton.setEnabled(false);
+            mLeaveButton.setEnabled(false);
+            mSendButton.setEnabled(false);
         }
     }
 
-    void onLowpanInterfaceAdded(LowpanInterface lowpanInterface) {
-        // A LoWPAN interface was added
-        if (mLowpanInterface == null && lowpanInterface != null) {
-            mLowpanInterface = lowpanInterface;
-            mLowpanInterface.registerCallback(mLowpanInterfaceCallback);
-            // Update the UI
-            refreshValues();
+    /**
+     * Updates the UI based on the whether LoWPAN interface is enabled.
+     *
+     * @param isEnabled Whether the LoWPAN interface is enabled.
+     */
+    private void refreshLowpanInterfaceEnabled(boolean isEnabled) {
+        if (isEnabled) {
+            // The LoWPAN interface is enabled
+            mEnabledCheckbox.setChecked(true);
+            mScanButton.setEnabled(true);
+            mSendButton.setEnabled(mLowpanInterface.getState() == LowpanInterface.STATE_ATTACHED);
+        } else {
+            // Display that the LoWPAN interface is not enabled
+            mEnabledCheckbox.setChecked(false);
+            mScanButton.setEnabled(false);
+            mLeaveButton.setEnabled(false);
+            mSendButton.setEnabled(false);
+            mNetworkNameView.setText("");
         }
     }
 
-    void onLowpanInterfaceRemoved(LowpanInterface lowpanInterface) {
-        // A LoWPAN interface was removed
-        if (mLowpanInterface == lowpanInterface) {
-            mLowpanInterface.unregisterCallback(mLowpanInterfaceCallback);
-            mLowpanInterface = null;
-            // Update the UI
-            refreshValues();
+    /**
+     * Updates the UI based on the whether LoWPAN interface is provisioned.
+     *
+     * @param isProvisioned Whether the LoWPAN interface is provisioned.
+     */
+    private void refreshLowpanIsProvisioned(boolean isProvisioned) {
+        if (isProvisioned) {
+            // The LoWPAN interface is connected to a network
+            mLeaveButton.setEnabled(true);
+            LowpanProvisioningParams provisioningParams =
+                    mLowpanInterface.getLowpanProvisioningParams(false);
+            if (provisioningParams != null) {
+                mNetworkNameView.setText(provisioningParams.getLowpanIdentity().getName());
+            }
+        } else {
+            // The LoWPAN interface is not connected to a network
+            mLeaveButton.setEnabled(false);
+            mNetworkNameView.setText("");
         }
     }
 
     private class DemoLowpanManagerCallback extends LowpanManager.Callback {
         @Override
         public void onInterfaceAdded(LowpanInterface lowpanInterface) {
-            onLowpanInterfaceAdded(lowpanInterface);
+            // A LoWPAN interface was added
+            if (mLowpanInterface == null && lowpanInterface != null) {
+                mLowpanInterface = lowpanInterface;
+                mLowpanInterface.registerCallback(mLowpanInterfaceCallback);
+                // Update the UI
+                refreshValues();
+            }
         }
 
         @Override
         public void onInterfaceRemoved(LowpanInterface lowpanInterface) {
-            onLowpanInterfaceRemoved(lowpanInterface);
+            // A LoWPAN interface was removed
+            if (mLowpanInterface == lowpanInterface) {
+                mLowpanInterface.unregisterCallback(mLowpanInterfaceCallback);
+                mLowpanInterface = null;
+                // Update the UI
+                refreshValues();
+            }
         }
     }
 
     private class DemoLowpanInterfaceCallback extends LowpanInterface.Callback {
         @Override
-        public void onStateChanged(int i) {
+        public void onStateChanged(int newState) {
+            // When there is a change in the LoWPAN interface, update the UI
             refreshValues();
         }
 
         @Override
         public void onLowpanIdentityChanged(LowpanIdentity lowpanIdentity) {
+            // When there is a change in the LoWPAN identity, update the UI
             refreshValues();
+        }
+
+        @Override
+        public void onProvisionException(Exception e) {
+            // This callback will only be run if we try to leave the network and the command fails
+            Log.e(TAG, "Unable to leave network", e);
         }
     }
 }
