@@ -1,0 +1,8 @@
+<resources>
+  <string name="app_name">LoWPAN Receiver</string>
+  <string name="receiver_title_connected">Listening</string>
+  <string name="ready">Ready</string>
+  <string name="connected">Connected</string>
+  <string name="socket_interrupted">Socket interrupted</string>
+  <string name="error_no_lowpan_interface">Error: No LoWPAN Interface</string>
+</resources>

@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.things.lowpan.scanner">
+
+  <!-- Required to access LoWPAN APIs -->
+  <uses-permission android:name="com.google.android.things.permission.ACCESS_LOWPAN_STATE"/>
+  <uses-permission android:name="com.google.android.things.permission.CHANGE_LOWPAN_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <!-- Required for scanning -->
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+  <application
+      android:allowBackup="true"
+      android:label="@string/app_name"
+      android:supportsRtl="true"
+      android:theme="@android:style/Theme.Material.NoActionBar">
+    <uses-library android:name="com.google.android.things"/>
+
+    <activity
+        android:label="@string/app_name"
+        android:name=".LowpanScanActivity">
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN"/>
+
+          <category android:name="android.intent.category.LAUNCHER"/>
+        </intent-filter>
+
+        <!-- Launch activity automatically on boot -->
+        <intent-filter>
+          <action android:name="android.intent.action.MAIN"/>
+
+          <category android:name="android.intent.category.IOT_LAUNCHER"/>
+          <category android:name="android.intent.category.DEFAULT"/>
+        </intent-filter>
+    </activity>
+  </application>
+</manifest>

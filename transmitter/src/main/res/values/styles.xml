@@ -1,0 +1,10 @@
+<resources>
+  <style name="lowpan_button" parent="@android:style/Widget.Button">
+    <item name="android:textSize">24sp</item>
+    <item name="android:textAllCaps">true</item>
+  </style>
+  <style name="small_lowpan_button" parent="@android:style/Widget.Button">
+    <item name="android:textSize">12sp</item>
+    <item name="android:textAllCaps">true</item>
+  </style>
+</resources>

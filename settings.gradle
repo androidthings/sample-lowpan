@@ -1,1 +1,1 @@
-include ':app'
+include ':transmitter', ':receiver', ':scanner'
