@@ -23,8 +23,8 @@ import android.util.Log;
 import android.widget.TextView;
 import com.google.android.things.contrib.driver.ht16k33.AlphanumericDisplay;
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33;
+import com.google.android.things.contrib.driver.lowpan.UartLowpanDriver;
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat;
-import com.google.android.things.lowpan.LowpanBeaconInfo;
 import com.google.android.things.lowpan.LowpanCredential;
 import com.google.android.things.lowpan.LowpanException;
 import com.google.android.things.lowpan.LowpanIdentity;
@@ -32,13 +32,15 @@ import com.google.android.things.lowpan.LowpanInterface;
 import com.google.android.things.lowpan.LowpanInterface.Callback;
 import com.google.android.things.lowpan.LowpanManager;
 import com.google.android.things.lowpan.LowpanProvisioningParams;
-import com.google.android.things.lowpan.LowpanScanner;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ReceiverActivity extends Activity {
     private static final String TAG = ReceiverActivity.class.getSimpleName();
+    /* UART parameters for the LoWPAN module */
+    private static final String UART_PORT = "USB1-1:1.0";
+    private static final int UART_BAUD = 115200;
 
     // Strings to display on the segment display
     private static final String DISPLAY_CONN =  "CONN";
@@ -49,10 +51,12 @@ public class ReceiverActivity extends Activity {
     private static final String DISPLAY_ERROR = "ERR!";
     private static final String DISPLAY_WAIT  = "WAIT";
 
-    // Network port to listen to
+    // Network info
     private static final int SERVER_PORT = 23456;
     private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
     private static final String LOWPAN_NETWORK = "lowpan_sample";
+
+    private UartLowpanDriver mLowpanDriver;
 
     private ServerSocket mServerSocket;
     private Handler mHandler;
@@ -61,55 +65,21 @@ public class ReceiverActivity extends Activity {
     private AlphanumericDisplay mSegmentDisplay;
     private TextView mStatus;
 
+    private LowpanManager mLowpanManager;
     private LowpanInterface mLowpanInterface;
-    private LowpanScanner mLowpanScanner;
-
-    private LowpanScanner.Callback mLowpanScannerCallback = new LowpanScanner.Callback() {
-        @Override
-        public void onNetScanBeacon(LowpanBeaconInfo beacon) {
-            if (beacon.getLowpanIdentity().getName().equals(LOWPAN_NETWORK)) {
-                Log.i(TAG, "Joining demo network");
-                LowpanProvisioningParams params = new LowpanProvisioningParams.Builder()
-                    .setLowpanIdentity(beacon.getLowpanIdentity())
-                    .setLowpanCredential(LowpanCredential.createMasterKey(LOWPAN_KEY))
-                    .build();
-                try {
-                    mLowpanInterface.join(params);
-                    mLowpanInterface.registerCallback(mLowpanInterfaceCallback);
-                } catch (LowpanException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Log.i(TAG, "Found network " + beacon.getLowpanIdentity().getName());
-            }
-        }
-    };
-
-    private LowpanInterface.Callback mLowpanInterfaceCallback = new Callback() {
-        @Override
-        public void onStateChanged(int state) {
-            if (state == LowpanInterface.STATE_ATTACHED) {
-                onNewValue(DISPLAY_READY);
-                onStatusChanged(getString(R.string.ready));
-                // Start a new thread to handle network events
-                mServerThread = new Thread(new ServerThread());
-                mServerThread.start();
-            }
-        }
-
-        @Override
-        public void onProvisionException(Exception e) {
-            Log.e(TAG, "Could not provision network", e);
-            onNewValue(DISPLAY_ERROR);
-            onStatusChanged(e.getMessage());
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receiver);
         mStatus = findViewById(R.id.lowpan_status);
+
+        mLowpanManager = LowpanManager.getManager();
+        try {
+            mLowpanManager.registerCallback(mInterfaceCallback);
+        } catch (LowpanException e) {
+            Log.e(TAG, "Unable to attach LoWPAN callback", e);
+        }
 
         mHandler = new Handler();
         try {
@@ -123,39 +93,54 @@ public class ReceiverActivity extends Activity {
             Log.e(TAG, "Unable to initialize segment display", e);
         }
         try {
-            provisionDemoNetwork();
+            ensureLowpanInterface();
+            formNetwork();
         } catch (LowpanException e) {
             onNewValue(DISPLAY_ERROR);
             onStatusChanged(e.getMessage());
-            Log.e(TAG, "Could not join LoWPAN network", e);
+            Log.e(TAG, "Unable to form LoWPAN network", e);
         }
     }
 
-    private void provisionDemoNetwork() throws LowpanException {
-        LowpanManager lowpanManager = LowpanManager.getManager();
-        mLowpanInterface = lowpanManager.getInterface();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        if (mLowpanInterface == null) {
-            Log.e(TAG, "No LoWPAN interface found");
-            onStatusChanged(getString(R.string.error_no_lowpan_interface));
-            onNewValue(DISPLAY_ERROR);
-            return;
+        // Register a LoWPAN module connected over UART
+        try {
+            mLowpanDriver = new UartLowpanDriver(UART_PORT, UART_BAUD);
+            mLowpanDriver.register();
+        } catch (IOException e) {
+            Log.w(TAG, "Unable to init LoWPAN driver");
         }
+    }
 
-        onNewValue(DISPLAY_WAIT);
-        mLowpanScanner = mLowpanInterface.createScanner();
-        mLowpanScanner.setCallback(mLowpanScannerCallback);
-        mLowpanScanner.startNetScan();
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mLowpanDriver != null) {
+            try {
+                mLowpanDriver.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Unable to close LoWPAN driver");
+            } finally {
+                mLowpanDriver = null;
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Close scanning
-        if (mLowpanScanner != null) {
-            mLowpanScanner.stopNetScan();
-            mLowpanScanner.setCallback(null);
+
+        // Detach LoWPAN callbacks
+        mLowpanManager.unregisterCallback(mInterfaceCallback);
+        if (mLowpanInterface != null) {
+            mLowpanInterface.unregisterCallback(mStateCallback);
+            mLowpanInterface = null;
         }
+
         // Close the server thread
         if (mServerThread != null) {
             mServerThread.interrupt();
@@ -178,6 +163,93 @@ public class ReceiverActivity extends Activity {
             mSegmentDisplay = null;
         }
     }
+
+    /**
+     * Listen for a new LoWPAN device. This callback is invoked when
+     * a LoWPAN module is connected and the user driver is registered.
+     */
+    private LowpanManager.Callback mInterfaceCallback = new LowpanManager.Callback() {
+        @Override
+        public void onInterfaceAdded(LowpanInterface lpInterface) {
+            try {
+                ensureLowpanInterface();
+                formNetwork();
+            } catch (LowpanException e) {
+                onNewValue(DISPLAY_ERROR);
+                onStatusChanged(e.getMessage());
+                Log.e(TAG, "Unable to form LoWPAN network", e);
+            }
+        }
+
+        @Override
+        public void onInterfaceRemoved(LowpanInterface lpInterface) {
+            Log.w(TAG, "Removed: " + lpInterface.getName());
+        }
+    };
+
+    /**
+     * Verify that a LoWPAN interface is attached
+     */
+    private void ensureLowpanInterface() throws LowpanException {
+        mLowpanInterface = mLowpanManager.getInterface();
+
+        if (mLowpanInterface == null) {
+            Log.e(TAG, "No LoWPAN interface found");
+            throw new LowpanException(getString(R.string.error_no_lowpan_interface));
+        }
+
+        mLowpanInterface.registerCallback(mStateCallback);
+    }
+
+    /**
+     * Create a new LoWPAN network, if necessary
+     */
+    private void formNetwork() throws LowpanException {
+        if (mLowpanInterface == null) return;
+
+        // Check if we are already provisioned on the right network
+        LowpanProvisioningParams params = mLowpanInterface.getLowpanProvisioningParams(false);
+        if (params != null && LOWPAN_NETWORK.equals(params.getLowpanIdentity().getName())) {
+            Log.d(TAG, "Already provisioned on the demo network");
+            return;
+        }
+
+        Log.i(TAG, "Forming demo network");
+        onNewValue(DISPLAY_WAIT);
+        params = new LowpanProvisioningParams.Builder()
+                .setLowpanIdentity(new LowpanIdentity.Builder()
+                        .setName(LOWPAN_NETWORK)
+                        .build())
+                .setLowpanCredential(LowpanCredential.createMasterKey(LOWPAN_KEY))
+                .build();
+
+        mLowpanInterface.form(params);
+    }
+
+    /**
+     * Callback to react to state changes in the LoWPAN interface
+     */
+    private LowpanInterface.Callback mStateCallback = new Callback() {
+        @Override
+        public void onStateChanged(int state) {
+            if (state == LowpanInterface.STATE_ATTACHED) {
+                Log.d(TAG, "Provisioned on a LoWPAN network");
+                onNewValue(DISPLAY_READY);
+                onStatusChanged(getString(R.string.ready));
+
+                // Start a new thread to handle network events
+                mServerThread = new Thread(new ServerThread());
+                mServerThread.start();
+            }
+        }
+
+        @Override
+        public void onProvisionException(Exception e) {
+            Log.e(TAG, "Could not provision network", e);
+            onNewValue(DISPLAY_ERROR);
+            onStatusChanged(e.getMessage());
+        }
+    };
 
     /**
      * Callback that is run when a new device connects to this device.
@@ -225,6 +297,9 @@ public class ReceiverActivity extends Activity {
         });
     }
 
+    /**
+     * Task to accept incoming socket connections.
+     */
     private class ServerThread implements Runnable {
         @Override
         public void run() {
@@ -236,6 +311,7 @@ public class ReceiverActivity extends Activity {
                 return;
             }
 
+            Log.i(TAG, "Listening for incoming connections");
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Socket socket = mServerSocket.accept();
@@ -250,6 +326,9 @@ public class ReceiverActivity extends Activity {
         }
     }
 
+    /**
+     * Task to receive data on a given connection
+     */
     private class SocketThread implements Runnable {
         private final Socket mSocket;
 
