@@ -17,18 +17,17 @@
 package com.example.things.lowpan.scanner;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.things.contrib.driver.lowpan.UartLowpanDriver;
 import com.google.android.things.lowpan.LowpanBeaconInfo;
 import com.google.android.things.lowpan.LowpanCredential;
 import com.google.android.things.lowpan.LowpanException;
@@ -39,145 +38,209 @@ import com.google.android.things.lowpan.LowpanProvisioningParams;
 import com.google.android.things.lowpan.LowpanRuntimeException;
 import com.google.android.things.lowpan.LowpanScanner;
 
+import java.io.IOException;
 import java.util.Random;
 
-public class LowpanScanActivity extends Activity {
+public class LowpanScanActivity extends Activity implements AdapterView.OnItemClickListener {
     private static final String TAG = LowpanScanActivity.class.getSimpleName();
+
     private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
+    /* UART parameters for the LoWPAN module */
+    private static final String UART_PORT = "USB1-1:1.0";
+    private static final int UART_BAUD = 115200;
 
     private LowpanManager mLowpanManager = LowpanManager.getManager();
     private LowpanInterface mLowpanInterface = null;
     private LowpanScanner mLowpanScanner = null;
-    private TextView mScanStatus;
+    private UartLowpanDriver mLowpanDriver;
 
-    private ProgressDialog mProgressDialog;
-    private LowpanInterface.Callback mFormCallback = new LowpanInterface.Callback() {
-        @Override
-        public void onStateChanged(int state) {
-            // Check that the next state is STATE_ATTACHED
-            if (state == LowpanInterface.STATE_ATTACHED) {
-                // This callback is no longer needed
-                mLowpanInterface.unregisterCallback(mFormCallback);
-                mScanStatus.setText(getString(R.string.formed_network));
-            }
-        }
-
-        @Override
-        public void onProvisionException(Exception e) {
-            // Something happened which prevents the network formation
-            Log.e(TAG, "Unable to create new network", e);
-            mScanStatus.setText(getString(R.string.status_new_network_error,
-                    e.getMessage()));
-        }
-    };
-    private LowpanInterface.Callback mJoinCallback = new LowpanInterface.Callback() {
-        @Override
-        public void onStateChanged(int state) {
-            if (state == LowpanInterface.STATE_ATTACHED) {
-                // We have successfully connected
-                mProgressDialog.hide();
-                mProgressDialog.dismiss();
-                // This callback is no longer needed
-                mLowpanInterface.unregisterCallback(mJoinCallback);
-                mScanStatus.setText(getString(R.string.joined_network));
-            }
-        }
-
-        @Override
-        public void onProvisionException(Exception e) {
-            // An error occurred during joining
-            Log.e(TAG, "Join failed.", e);
-            new AlertDialog.Builder(LowpanScanActivity.this)
-                    .setTitle(getString(R.string.error_join_title))
-                    .setMessage(e.getMessage())
-                    .show();
-        }
-    };
+    private Button mScanButton;
+    private TextView mInterfaceStatus, mNetworkStatus;
+    private LowpanBeaconAdapter mBeaconsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lowpan_scan);
 
-        Button scanButton = findViewById(R.id.scanButton);
-        scanButton.setOnClickListener((view) -> onBeginScan());
+        mScanButton = findViewById(R.id.scanButton);
+        mScanButton.setOnClickListener((view) -> beginScan());
 
         Button provisionButton = findViewById(R.id.provisionButton);
-        provisionButton.setOnClickListener(view -> onCreateNewNetwork());
+        provisionButton.setOnClickListener(view -> createNewNetwork());
 
-        mScanStatus = findViewById(R.id.scanStatus);
+        Button leaveButton = findViewById(R.id.leaveButton);
+        leaveButton.setOnClickListener(view -> leaveNetwork());
 
-        mLowpanInterface = mLowpanManager.getInterface();
+        ListView beaconsView = findViewById(R.id.beacons);
+        beaconsView.setOnItemClickListener(this);
+        mBeaconsAdapter = new LowpanBeaconAdapter(this);
+        beaconsView.setAdapter(mBeaconsAdapter);
 
-        if (mLowpanInterface == null) {
-            Log.e(TAG, "No LoWPAN interface found");
-            mScanStatus.setText(R.string.error_no_lowpan_interface);
-            scanButton.setClickable(false);
-            return;
+        mInterfaceStatus = findViewById(R.id.interfaceStatus);
+        mNetworkStatus = findViewById(R.id.networkStatus);
+
+        try {
+            mLowpanManager.registerCallback(mInterfaceCallback);
+        } catch (LowpanException e) {
+            Log.e(TAG, "Unable to attach LoWPAN callback");
         }
-        mLowpanScanner = mLowpanInterface.createScanner();
+    }
 
-        mLowpanScanner.setCallback(
-                new LowpanScanner.Callback() {
-                    @Override
-                    public void onNetScanBeacon(LowpanBeaconInfo beacon) {
-                        // When a new LoWPAN network is found, add to the list
-                        LowpanScanActivity.this.onNetScanBeacon(beacon);
-                    }
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-                    @Override
-                    public void onScanFinished() {
-                        LowpanScanActivity.this.onScanFinished();
-                    }
-                },
-                new Handler());
-        mScanStatus.setText(R.string.ready_to_scan);
+        // Register a LoWPAN module connected over UART
+        try {
+            mLowpanDriver = new UartLowpanDriver(UART_PORT, UART_BAUD);
+            mLowpanDriver.register();
+            verifyLowpanInterface();
+        } catch (IOException e) {
+            Log.w(TAG, "Unable to init LoWPAN driver");
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mLowpanDriver != null) {
+            try {
+                mLowpanDriver.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Unable to close LoWPAN driver");
+            } finally {
+                mLowpanDriver = null;
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mProgressDialog != null) {
-            mProgressDialog.dismiss();
-            mProgressDialog = null;
+
+        if (mLowpanInterface != null) {
+            mLowpanInterface.unregisterCallback(mStateCallback);
+            mLowpanInterface = null;
         }
+
+        mLowpanManager.unregisterCallback(mInterfaceCallback);
     }
 
     /**
-     * Start to scan for nearby LoWPAN networks that this device can join.
+     * Listen for a new LoWPAN device. This callback is invoked when
+     * a LoWPAN module is connected and the user driver is registered.
      */
-    private void onBeginScan() {
-        // Start scanning for networks
-        LinearLayout beaconsView = findViewById(R.id.beacons);
-        // Empty the list
-        beaconsView.removeAllViews();
+    private LowpanManager.Callback mInterfaceCallback = new LowpanManager.Callback() {
+        @Override
+        public void onInterfaceAdded(LowpanInterface lpInterface) {
+            Log.d(TAG, "Added: " + lpInterface.getName());
+            verifyLowpanInterface();
+        }
 
-        TextView scanStatus = findViewById(R.id.scanStatus);
+        @Override
+        public void onInterfaceRemoved(LowpanInterface lpInterface) {
+            Log.w(TAG, "Removed: " + lpInterface.getName());
+            verifyLowpanInterface();
+        }
+    };
+
+    /**
+     * Initialize the scanner once a LoWPAN interface has been detected.
+     */
+    private void verifyLowpanInterface() {
+        mLowpanInterface = mLowpanManager.getInterface();
+
+        if (mLowpanInterface == null) {
+            Log.e(TAG, "No LoWPAN interface found");
+            mInterfaceStatus.setText(R.string.error_no_lowpan_interface);
+            mScanButton.setEnabled(false);
+            return;
+        }
+        mLowpanInterface.registerCallback(mStateCallback);
+
+        mLowpanScanner = mLowpanInterface.createScanner();
+        mLowpanScanner.setCallback(mScanCallback, new Handler(Looper.getMainLooper()));
+
+        mInterfaceStatus.setText(R.string.ready_to_scan);
+        mScanButton.setEnabled(true);
+    }
+
+    /**
+     * Start to scan for nearby LoWPAN networks.
+     */
+    private void beginScan() {
+        // Empty the list
+        mBeaconsAdapter.clear();
+
+        // Start scanning for networks
         try {
             mLowpanScanner.startNetScan();
             Log.d(TAG, "Scanning for networks...");
-            scanStatus.setText(R.string.progress_scanning);
-
-            if (mProgressDialog == null) {
-                mProgressDialog = new ProgressDialog(this);
-            }
-            mProgressDialog.setMessage(getString(R.string.progress_scanning));
-            mProgressDialog.setCancelable(false);
-            mProgressDialog.show();
+            mInterfaceStatus.setText(R.string.progress_scanning);
         } catch (LowpanException e) {
-            scanStatus.setText(R.string.error_scan_failed);
+            mInterfaceStatus.setText(R.string.error_scan_failed);
             Log.e(TAG, "Scan failed", e);
             return;
         }
+
         // Disable button until scan is complete
-        Button scanButton = findViewById(R.id.scanButton);
-        scanButton.setClickable(false);
+        mScanButton.setEnabled(false);
+    }
+
+    /**
+     * A callback that is run when the scan is complete.
+     */
+    private void scanComplete() {
+        // Network scan is complete
+        mInterfaceStatus.setText(R.string.scan_finished);
+        Log.d(TAG, "Scan Finished");
+
+        // Enable the scan button again
+        mScanButton.setEnabled(true);
+    }
+
+    /**
+     * Add a newly discovered LoWPAN network to the list of nearby LoWPAN networks.
+     *
+     * @param beacon The LoWPAN network that was discovered.
+     */
+    private void addDiscoveredBeacon(LowpanBeaconInfo beacon) {
+        // Display information about each beacon when it is discovered.
+        mBeaconsAdapter.add(beacon);
+        Log.d(TAG, "Added beacon: " + beacon.toString());
+    }
+
+    /**
+     * Handle results when new networks are detected by the scanner.
+     */
+    private LowpanScanner.Callback mScanCallback = new LowpanScanner.Callback() {
+        @Override
+        public void onNetScanBeacon(LowpanBeaconInfo beacon) {
+            // When a new LoWPAN network is found, add to the list
+            addDiscoveredBeacon(beacon);
+        }
+
+        @Override
+        public void onScanFinished() {
+            scanComplete();
+        }
+    };
+
+    /**
+     * Called when a list item containing a LoWPAN network is selected
+     */
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        LowpanBeaconInfo beacon = mBeaconsAdapter.getItem(position);
+        joinNetwork(beacon);
     }
 
     /**
      * Form a new network with a randomly-generated name and connect to it.
      */
-    private void onCreateNewNetwork() {
+    private void createNewNetwork() {
         Random random = new Random();
         // Generate a new network name that is easily unique, ie. "LoWPAN_142"
         String name = "LoWPAN_" + Integer.toString(random.nextInt(1000));
@@ -190,100 +253,74 @@ public class LowpanScanActivity extends Activity {
         try {
             // Try to form the network. The callback will handle the success/error states.
             Log.d(TAG, "Creating new LoWPAN network with name " + name);
-            mScanStatus.setText(getString(R.string.status_new_network, name));
+            mInterfaceStatus.setText(getString(R.string.status_new_network, name));
             mLowpanInterface.form(params);
-            mLowpanInterface.registerCallback(mFormCallback);
         } catch (LowpanException | LowpanRuntimeException e) {
             // Something happened which prevents the network formation
             Log.e(TAG, "Unable to create new network", e);
-            mScanStatus.setText(getString(R.string.status_new_network_error, e.getMessage()));
+            mInterfaceStatus.setText(getString(R.string.status_network_error,
+                    e.getMessage()));
         }
     }
 
     /**
-     * Add a newly discovered LoWPAN network to the list of nearby LoWPAN networks.
-     *
-     * @param beacon The LoWPAN network that was discovered.
+     * Connect to the provided LoWPAN network
+     * @param beacon Beacon containing the network identity
      */
-    private void onNetScanBeacon(LowpanBeaconInfo beacon) {
-        // Display information about each beacon when it is discovered.
-        LinearLayout beaconsView = findViewById(R.id.beacons);
-        LayoutInflater inflater = getLayoutInflater();
-        View child = inflater.inflate(R.layout.list_item_beacon, beaconsView, false);
-
-        TextView networkNameView = child.findViewById(R.id.networkName);
-        networkNameView.setText(beacon.getLowpanIdentity().getName());
-
-        TextView xpanidView = child.findViewById(R.id.xpanid);
-        xpanidView.setText(Utils.bytesToHex(beacon.getLowpanIdentity().getXpanid()));
-
-        TextView chanView = child.findViewById(R.id.chanValue);
-        chanView.setText(String.format("%d", beacon.getLowpanIdentity().getChannel()));
-
-        TextView panidView = child.findViewById(R.id.panidValue);
-        panidView.setText(String.format("%04X", beacon.getLowpanIdentity().getPanid()));
-
-        TextView macAddrView = child.findViewById(R.id.macaddr);
-        macAddrView.setText(Utils.bytesToAddrHex(beacon.getBeaconAddress()));
-
-        ProgressBar rssiProgressView = child.findViewById(R.id.rssiProgress);
-        int rssi = Utils.rssiToLqi(beacon.getRssi());
-        rssiProgressView.setProgress(rssi);
-
-        ProgressBar lqiProgressView = child.findViewById(R.id.lqiProgress);
-        int lqi = beacon.getLqi();
-        lqiProgressView.setProgress(lqi);
-
-        View canAssistView = child.findViewById(R.id.canAssist);
-        canAssistView.setVisibility(beacon.isFlagSet(LowpanBeaconInfo.FLAG_CAN_ASSIST) ?
-                View.VISIBLE : View.GONE);
-
-        Button joinButton = child.findViewById(R.id.joinButton);
-        joinButton.setOnClickListener((view) -> onJoinBeaconInfo(beacon));
-
-        beaconsView.addView(child);
-        Log.d(TAG, "Added beacon: " + beacon.toString());
-    }
-
-    /**
-     * Attempt to join a particular LoWPAN network.
-     *
-     * @param beaconInfo The LoWPAN network to connect to.
-     */
-    private void onJoinBeaconInfo(LowpanBeaconInfo beaconInfo) {
+    private void joinNetwork(LowpanBeaconInfo beacon) {
         // Try to join a network with a particular name and a standard key
         LowpanProvisioningParams params = new LowpanProvisioningParams.Builder()
-                .setLowpanIdentity(beaconInfo.getLowpanIdentity())
+                .setLowpanIdentity(beacon.getLowpanIdentity())
                 .setLowpanCredential(LowpanCredential.createMasterKey(LOWPAN_KEY))
                 .build();
-        // Display a progress dialog while trying to join the network
-        mProgressDialog = new ProgressDialog(LowpanScanActivity.this);
-        mProgressDialog.setMessage(getString(R.string.progress_joining));
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
 
-        // Join the network and register a callback to handle the response
+        // Try to join the network. The callback will handle the success/error states.
         try {
             mLowpanInterface.join(params);
-            mLowpanInterface.registerCallback(mJoinCallback);
         } catch (LowpanException e) {
-            Log.e(TAG, "Join failed.", e);
+            Log.e(TAG, "Unable to join network", e);
+            mInterfaceStatus.setText(getString(R.string.status_network_error,
+                    e.getMessage()));
         }
     }
 
     /**
-     * A callback that is run when the scan is complete.
+     * Disaccociate the LoWPAN interface with the current network
      */
-    private void onScanFinished() {
-        // Network scan is complete
-        TextView scanStatus = findViewById(R.id.scanStatus);
-        scanStatus.setText(R.string.scan_finished);
-        Log.d(TAG, "Scan Finished");
-        if (mProgressDialog != null) {
-            mProgressDialog.hide();
+    private void leaveNetwork() {
+        try {
+            mLowpanInterface.leave();
+        } catch (LowpanException e) {
+            Log.e(TAG, "Unable to leave network", e);
+            mInterfaceStatus.setText(getString(R.string.status_network_error,
+                    e.getMessage()));
         }
-        // Enable the scan button again
-        Button scanButton = findViewById(R.id.scanButton);
-        scanButton.setClickable(true);
     }
+
+    /**
+     * Handle interface state changes while attempting to create a network
+     */
+    private LowpanInterface.Callback mStateCallback = new LowpanInterface.Callback() {
+        @Override
+        public void onStateChanged(int state) {
+            mInterfaceStatus.setText(Utils.stateToString(state));
+        }
+
+        @Override
+        public void onLowpanIdentityChanged(LowpanIdentity identity) {
+            if (identity == null) {
+                mNetworkStatus.setText(null);
+            } else {
+                mNetworkStatus.setText(identity.getName());
+            }
+        }
+
+        @Override
+        public void onProvisionException(Exception e) {
+            // Something happened which prevents the network provisioning
+            Log.e(TAG, "Unable to provision network interface", e);
+            mInterfaceStatus.setText(getString(R.string.status_network_error,
+                    e.getMessage()));
+        }
+    };
 }

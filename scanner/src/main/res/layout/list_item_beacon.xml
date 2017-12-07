@@ -14,208 +14,152 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/beaconRow"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
     android:layout_marginBottom="4dp"
-    android:layout_marginTop="4dp">
+    android:layout_marginTop="4dp"
+    android:orientation="horizontal">
 
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent"
-      android:orientation="horizontal"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toTopOf="parent">
-
-    <LinearLayout
-        android:id="@+id/networkIdentity"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-      <TextView
-          android:id="@+id/networkName"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          tools:text="Network Name"
-          android:textSize="32sp" />
-
-      <TextView
-          android:id="@+id/xpanid"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          tools:text="EDB2C60363C04182"
-          android:textSize="16sp"
-          android:typeface="monospace" />
-
-      <TextView
-          android:id="@+id/macaddr"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:textSize="16sp"
-          tools:text="06:90:f2:af:a0:66:c0:f7"
-          android:typeface="monospace"/>
-
-    </LinearLayout>
-  </LinearLayout>
-
-  <LinearLayout
-      android:id="@+id/trailingLayout"
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent"
-      android:orientation="horizontal"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintTop_toTopOf="parent">
-
-    <Button
-        android:id="@+id/canAssist"
-        style="@style/small_lowpan_button"
-        android:layout_gravity="center_vertical"
+    <TextView
+        android:id="@+id/networkName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_can_assist"/>
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:textSize="32sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Network Name" />
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/signalStrength"
+    <TextView
+        android:id="@+id/xpanid"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:paddingStart="4dp"
-        android:paddingEnd="2dp"
-        tools:layout_editor_absoluteX="84dp"
-        tools:layout_editor_absoluteY="0dp">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="8dp"
+        android:textSize="16sp"
+        android:typeface="monospace"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/macaddr"
+        tools:text="EDB2C60363C04182" />
 
-      <TextView
-          android:id="@+id/lqiLabel"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginBottom="2dp"
-          android:layout_marginEnd="4dp"
-          android:text="@string/lqi"
-          android:textAlignment="textEnd"
-          android:textSize="20sp"
-          app:layout_constraintBottom_toBottomOf="@+id/lqiProgress"
-          app:layout_constraintEnd_toStartOf="@+id/lqiProgress"
-          app:layout_constraintTop_toTopOf="@+id/lqiProgress"
-          tools:layout_editor_absoluteX="305dp"/>
-
-      <TextView
-          android:id="@+id/rssiLabel"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginBottom="2dp"
-          android:layout_marginEnd="4dp"
-          android:text="@string/rssi"
-          android:textAlignment="textEnd"
-          android:textSize="20sp"
-          app:layout_constraintBottom_toBottomOf="@+id/rssiProgress"
-          app:layout_constraintEnd_toStartOf="@+id/rssiProgress"
-          app:layout_constraintTop_toTopOf="@+id/rssiProgress"
-          tools:layout_editor_absoluteX="296dp"/>
-
-      <ProgressBar
-          android:id="@+id/rssiProgress"
-          style="@android:style/Widget.Material.ProgressBar.Horizontal"
-          android:layout_width="48dp"
-          android:layout_height="22dp"
-          android:max="255"
-          android:progress="160"
-          android:progressTint="@android:color/holo_blue_dark"
-          app:layout_constraintBottom_toTopOf="@+id/lqiProgress"
-          app:layout_constraintEnd_toEndOf="parent"
-          app:layout_constraintTop_toTopOf="parent"
-          tools:layout_editor_absoluteX="325dp"/>
-
-      <ProgressBar
-          android:id="@+id/lqiProgress"
-          style="@android:style/Widget.Material.ProgressBar.Horizontal"
-          android:layout_width="48dp"
-          android:layout_height="22dp"
-          android:max="255"
-          android:progress="127"
-          android:progressTint="@android:color/holo_blue_dark"
-          app:layout_constraintBottom_toBottomOf="parent"
-          app:layout_constraintEnd_toEndOf="parent"
-          app:layout_constraintTop_toBottomOf="@+id/rssiProgress"
-          tools:layout_editor_absoluteX="325dp"/>
-
-
-    </android.support.constraint.ConstraintLayout>
-
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/chanPanid"
+    <TextView
+        android:id="@+id/macaddr"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:paddingStart="4dp"
-        android:paddingEnd="0dp">
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textSize="16sp"
+        android:typeface="monospace"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/networkName"
+        tools:text="06:90:f2:af:a0:66:c0:f7" />
 
-      <TextView
-          android:id="@+id/chanLabel"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:text="@string/chan"
-          android:textSize="20sp"
-          android:textAlignment="textEnd"
-          android:layout_marginEnd="4dp"
-          android:layout_marginBottom="2dp"
-          app:layout_constraintBottom_toTopOf="@+id/panidLabel"
-          app:layout_constraintEnd_toStartOf="@+id/chanValue"
-          app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:id="@+id/lqiLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/lqi"
+        android:textAlignment="textEnd"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/lqiProgress"
+        app:layout_constraintEnd_toStartOf="@+id/lqiProgress"
+        app:layout_constraintTop_toTopOf="@+id/lqiProgress" />
 
-      <TextView
-          android:id="@+id/panidLabel"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginEnd="4dp"
-          android:layout_marginBottom="2dp"
-          android:text="@string/panid"
-          android:textSize="20sp"
-          android:textAlignment="textEnd"
-          app:layout_constraintBottom_toBottomOf="parent"
-          app:layout_constraintEnd_toStartOf="@+id/panidValue"
-          app:layout_constraintTop_toBottomOf="@+id/chanLabel"/>
+    <TextView
+        android:id="@+id/rssiLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/rssi"
+        android:textAlignment="textEnd"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/rssiProgress"
+        app:layout_constraintEnd_toStartOf="@+id/rssiProgress"
+        app:layout_constraintTop_toTopOf="@+id/rssiProgress" />
 
-      <TextView
-          android:id="@+id/chanValue"
-          android:layout_width="48dp"
-          android:layout_height="wrap_content"
-          tools:text="16"
-          android:textSize="20sp"
-          android:textStyle="bold"
-          android:typeface="monospace"
-          app:layout_constraintBaseline_toBaselineOf="@+id/chanLabel"
-          app:layout_constraintEnd_toEndOf="parent" />
-
-      <TextView
-          android:id="@+id/panidValue"
-          android:layout_width="48dp"
-          android:layout_height="wrap_content"
-          tools:text="FFFF"
-          android:textSize="20sp"
-          android:textStyle="bold"
-          android:typeface="monospace"
-          app:layout_constraintBaseline_toBaselineOf="@+id/panidLabel"
-          app:layout_constraintEnd_toEndOf="parent"/>
-
-
-    </android.support.constraint.ConstraintLayout>
-
-    <Button
-        android:id="@+id/joinButton"
-        style="@style/small_lowpan_button"
-        android:layout_gravity="center_vertical"
+    <ProgressBar
+        android:id="@+id/rssiProgress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="48dp"
+        android:layout_height="22dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_width="0dp"
+        android:max="255"
+        android:progress="160"
+        android:progressTint="@android:color/holo_blue_dark"
+        app:layout_constraintBottom_toTopOf="@+id/lqiProgress"
+        app:layout_constraintEnd_toStartOf="@+id/panidLabel"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/lqiProgress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="48dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="16dp"
+        android:max="255"
+        android:progress="127"
+        android:progressTint="@android:color/holo_blue_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/panidLabel"
+        app:layout_constraintTop_toBottomOf="@+id/rssiProgress" />
+
+    <TextView
+        android:id="@+id/chanLabel"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/button_join"
-        android:textSize="20sp" />
-  </LinearLayout>
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/chan"
+        android:textAlignment="textEnd"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/panidLabel"
+        app:layout_constraintEnd_toStartOf="@+id/chanValue"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/panidLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="4dp"
+        android:text="@string/panid"
+        android:textAlignment="textEnd"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/panidValue"
+        app:layout_constraintTop_toBottomOf="@+id/chanLabel" />
+
+    <TextView
+        android:id="@+id/chanValue"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        app:layout_constraintBaseline_toBaselineOf="@+id/chanLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="16" />
+
+    <TextView
+        android:id="@+id/panidValue"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        app:layout_constraintBaseline_toBaselineOf="@+id/panidLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="FFFF" />
 
 </android.support.constraint.ConstraintLayout>

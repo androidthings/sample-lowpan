@@ -1,20 +1,16 @@
 <resources>
   <string name="app_name">LoWPAN Scanner</string>
-  <string name="status_new_network_error">Cannot create new network: %1$s</string>
-  <string name="error_join_title">Joining Error</string>
+  <string name="status_network_error">Network error: %1$s</string>
+  <string name="status_provisioned">Provisioned on: %1$s</string>
   <string name="error_no_lowpan_interface">No LoWPAN Interface</string>
   <string name="ready_to_scan">Ready to Scan</string>
-  <string name="progress_joining">Joining...</string>
   <string name="progress_scanning">Scanning...</string>
   <string name="error_scan_failed">Scan Failed</string>
   <string name="button_scan">Scan</string>
-  <string name="button_provision">New Network</string>
-  <string name="button_join">Join</string>
-  <string name="button_can_assist">Can Assist</string>
+  <string name="button_provision">Form Network</string>
+  <string name="button_leave">Leave</string>
   <string name="scan_finished">Finished Scanning</string>
-  <string name="status_new_network">New network: %1$s</string>
-  <string name="joined_network">Joined existing network</string>
-  <string name="formed_network">Formed new network</string>
+  <string name="status_new_network">Creating network: %1$s</string>
   <string name="lqi">LQI</string>
   <string name="rssi">RSSI</string>
   <string name="chan">CHAN</string>

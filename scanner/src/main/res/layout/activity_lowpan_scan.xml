@@ -14,7 +14,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
@@ -22,45 +23,47 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-  <ScrollView
-      android:id="@+id/scrollView"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:clipToPadding="false"
-      android:fadeScrollbars="false"
-      android:padding="8dp"
-      android:layout_marginBottom="8dp"
-      android:scrollbarStyle="insideInset"
-      app:layout_constraintTop_toTopOf="parent"
+  <ListView
+      android:id="@+id/beacons"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      app:layout_constraintBottom_toTopOf="@+id/interfaceStatus"
       app:layout_constraintLeft_toLeftOf="parent"
       app:layout_constraintRight_toRightOf="parent"
-      app:layout_constraintBottom_toTopOf="@+id/scanButton"
-      app:layout_constraintVertical_bias="0.0">
-
-    <LinearLayout
-        android:id="@+id/beacons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
-  </ScrollView>
+      app:layout_constraintTop_toTopOf="parent" />
 
   <TextView
-      android:id="@+id/scanStatus"
-      android:layout_width="wrap_content"
+      android:id="@+id/interfaceStatus"
+      android:layout_width="0dp"
       android:layout_height="wrap_content"
-      tools:text="Scan Status"
+      android:layout_marginBottom="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginStart="8dp"
       android:textAlignment="center"
-      android:textAppearance="@android:style/TextAppearance.Holo.Large"
+      android:textAppearance="@android:style/TextAppearance.Medium"
       android:visibility="visible"
-      app:layout_constraintStart_toEndOf="@+id/provisionButton"
+      app:layout_constraintBottom_toTopOf="@+id/provisionButton"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="@+id/networkStatus"
+      tools:text="Interface Status" />
+
+  <TextView
+      android:id="@+id/networkStatus"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginStart="8dp"
+      android:textAlignment="center"
+      android:textAppearance="@android:style/TextAppearance.Medium"
+      android:visibility="visible"
+      app:layout_constraintBottom_toTopOf="@+id/provisionButton"
       app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintTop_toTopOf="@+id/provisionButton"
-      app:layout_constraintBottom_toBottomOf="@+id/provisionButton"
-      />
+      app:layout_constraintStart_toEndOf="@+id/interfaceStatus"
+      tools:text="Network Status" />
 
   <Button
       android:id="@+id/scanButton"
-      style="@style/lowpan_button"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_margin="8dp"
@@ -69,20 +72,36 @@
       android:paddingRight="24dp"
       android:text="@string/button_scan"
       app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintLeft_toLeftOf="parent"/>
+      app:layout_constraintEnd_toStartOf="@+id/provisionButton"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintHorizontal_chainStyle="packed"
+      app:layout_constraintStart_toStartOf="parent" />
 
   <Button
       android:id="@+id/provisionButton"
-      style="@style/lowpan_button"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_margin="8dp"
-      android:layout_marginStart="8dp"
+      android:layout_marginBottom="8dp"
       android:paddingLeft="24dp"
       android:paddingRight="24dp"
       android:text="@string/button_provision"
-      app:layout_constraintStart_toEndOf="@+id/scanButton"
       app:layout_constraintBottom_toBottomOf="parent"
-      tools:layout_editor_absoluteY="278dp"/>
+      app:layout_constraintEnd_toStartOf="@+id/leaveButton"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toEndOf="@+id/scanButton" />
+
+  <Button
+      android:id="@+id/leaveButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginStart="8dp"
+      android:text="@string/button_leave"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toEndOf="@+id/provisionButton" />
 
 </android.support.constraint.ConstraintLayout>
