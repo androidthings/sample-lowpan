@@ -3,7 +3,8 @@
 This sample shows how to use LoWPAN to connect multiple Android Things
 devices in the same network and wirelessly transfer data. There are
 three modules in this sample which demonstrate how to scan for networks,
-transmit data, and receive data.
+transmit data, and receive data. To learn more about LoWPAN networks, see the
+[LoWPAN API guide](https://developer.android.com/things/sdk/apis/lowpan.html).
 
 ## Pre-requisites
 
@@ -13,21 +14,31 @@ transmit data, and receive data.
 - LoWPAN peripherals
 
 ## Integrating LoWPAN Hardware
+Android Things boards do not have LoWPAN hardware built in. To interface an
+Android Things device with LoWPAN, you need to interface with a supported
+Network Co-Processor (NCP) module and install the appropriate user driver.
 
-To interface an Android Things device with LoWPAN, you can write a `LowpanDriver`.
+### Supported modules and firmware
+To get started with a development board, visit the OpenThread
+[Pre-Built NCP Firmware](https://openthread.io/guides/ncp/firmware) page for
+firmware binaries and flashing instructions for supported boards.
 
-### `LowpanDriver`
+### LoWPAN user driver
+The NCP module interfaces to Android Things through a
+[user driver](https://developer.android.com/things/sdk/drivers/index.html).
+This sample includes the
+[LoWPAN NCP driver](https://github.com/androidthings/contrib-drivers/tree/master/lowpan)
+to interface with the pre-built OpenThread NCP firmware.
+For more details on building your own driver, see the
+[LoWPAN driver guide](https://developer.android.com/things/sdk/drivers/lowpan.html).
 
-Read the documentation on how to write a [LoWPAN driver](https://developer.android.com/things/reference/com/google/android/things/userdriver/LowpanDriver.html) for a specific
-peripheral.
+## Scanner App
+The `scanner` module demonstrates how to scan for other networks. It can
+view existing networks and provision a new network from the device.
 
-### Pre-Built NCP Firmware
-To get started with a pre-existing development board, you can download
-a firmware image from the [OpenThread](https://openthread.io/guides/ncp/firmware)
-website and flash one of the supported boards.
+This module requires a screen and input device.
 
-# Build and install
-
+### Build and install
 On Android Studio, click on the "Run" button.
 
 If you prefer to run on the command line, type
@@ -36,60 +47,90 @@ If you prefer to run on the command line, type
 ./gradlew installDebug
 adb shell am start com.example.things.lowpan.scanner/.LowpanScanActivity
 ```
+
+### Getting started
+
+1.  Build and install the `scanner` app on the first Android Things device.
+1.  Tap the **Form Network** button on the display to create a new LoWPAN network
+    and attach the device. The status message reports the newly created network
+    name.
+1.  Build and install the `scanner` app on the second Android Things device.
+1.  Tap the **Scan** button on the display. Within a few moments, the network
+    info appears in the list.
+1.  Finally, tap **Leave** on the first Android Things device to tear down the
+    LoWPAN network.
+
+## Transmitter/Receiver App
+The `transmitter` and `receiver` app modules demonstrate how to connect
+multiple devices to the same LoWPAN network and exchange data over a TCP socket.
+The `receiver` app provisions a network called **lowpan_sample**. The
+`transmitter` app scans for networks with that name and joins the corresponding
+network automatically.
+
+### Build and install
+On Android Studio, click on the "Run" button.
+
+If you prefer to run on the command line, type
+
 ```bash
 ./gradlew installDebug
 adb shell am start com.example.things.lowpan.transmitter/.TransmitterActivity
 ```
+
 ```bash
 ./gradlew installDebug
-adb shell am start com.example.things.lowpan.scanner/.ReceiverActivity
+adb shell am start com.example.things.lowpan.receiver/.ReceiverActivity
 ```
 
+### Getting started
+
+1.  Build and install the `receiver` app on the first Android Things device
+1.  Identify the receiver device's [IP address](#discovering-the-ip-address)
+    on the LoWPAN network
+1.  Open the `transmitter` module, and enter the IP address from the previous
+    section into `TransmitterActivity.java`:
+
+    ```java
+    private static final String SERVER_ADDRESS = "<ENTER_IP_ADDRESS>";
+    ```
+
+1. Build and install the `transmitter` app on the second Android Things device
+
+#### Discovering the IP address
+OpenThread network interfaces have two separate IP address identifiers:
+the **mesh-local** address and the **link-local** address.
+See [IPv6 Addressing](https://openthread.io/guides/thread_primer/ipv6_addressing)
+for more details on the differences between them.
+
+Enter `adb shell lowpanctl status` to determine the addresses for a LoWPAN
+interface. Example:
+
+```
+$ adb shell lowpanctl status
+wpan1	attached (router) UP CONNECTED COMMISSIONED
+  Name:lowpan_sample, PANID:0x5E59, Channel:12
+  fd4c:2683:6235:0:9f3e:43f1:1b2d:9006/64      <---- mesh-local address
+  fe80::52:64e7:9ca4:802/64                    <---- link-local address
+```
+
+Note the **mesh-local** address for use with this sample. In the above example,
+that value would be `fd4c:2683:6235:0:9f3e:43f1:1b2d:9006`.
+
 ### How to use
+If you have a Rainbow Hat or a screen, you can control the `transmitter` module
+and view status. It will display "READY" when the sample is ready to connect.
 
-#### Scanner
-The Scanner module demonstrates how to scan for other networks. It can
-view existing networks, join existing networks, or form a new network.
+Pressing the **A** button on the Rainbow Hat (or tapping **Connect** on the display)
+will initiate a connection to the receiver. It will say "CONNECTED" if successful.
 
-This module requires a screen and input device.
-
-#### Transmitter
-The Transmitter module demonstrates how to send data to other devices.
-When it is created, it provisions a network called **lowpan_sample**.
-
-Before running this module, you should identify the address of the receiver
-device and replace `SERVER_ADDRESS` in `TransmitterActivity`.
-
-If you have a Rainbow Hat or a screen, you can control the module and view
-its status. It will display "READY" when the sample is ready to connect.
-
-Pressing the **A** button on the Rainbow Hat will initiate a connection
-to the receiver. It will say "CONNECTED" if successful.
-
-Once that happens you can control a seekbar on the screen. Alternatively,
+Once that happens you can control a seek bar on the display. Alternatively,
 the **B** and **C** buttons on the Rainbow Hat will decrement or increment
 the value. The value is then transmitted wirelessly to the receiver device.
 
-#### Receiver
-The Receiver module demonstrates how to connect to a network socket and
-receive data from other devices. When it starts, it will do a scan of
-nearby networks. If it finds the network called **lowpan_sample** it will
-try to join.
-
-When it joins, it will update the status to say "CONNECTED". Then, as it
-receives data from the transmitter, it will change the value displayed
-on the screen as well as on the Rainbow Hat.
-
-#### Identify the address of your receiver device
-
-Follow these steps to setup the app to make local connections:
-
-1. Open a shell to the device you want as the receiver
-1. Execute `lowpanctl status`
-1. Note the address. This will have the prefix "fe80::".
-1. In `DemoActivity.java` replace the `SERVER_ADDRESS` with this value
-
-To learn more about LoWPAN networks, read the [documentation](https://developer.android.com/things/reference/com/google/android/things/lowpan/package-summary.html).
+After the `receiver` joins the network and accepts the new connection, it will
+update the display to say "CONNECTED". Then, as it receives data from the
+`transmitter`, it will change the value displayed on both the display and the
+Rainbow Hat.
 
 ## License
 
