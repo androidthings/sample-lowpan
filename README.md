@@ -34,6 +34,41 @@ to interface with the pre-built OpenThread NCP firmware.
 For more details on building your own driver, see the
 [LoWPAN driver guide](https://developer.android.com/things/sdk/drivers/lowpan.html).
 
+### Connecting the hardware
+
+The Nordic nRF52840-PDK connects to your Android Things developer board over USB
+and exposes a UART to the application. The `nRF USB` port marked below is the
+correct port to use:
+
+![nRF52840 Connections](images/nrf52840-connect.jpg)
+
+If you are connecting the board over USB, you must determine the name of the
+UART port it creates.
+
+1.  Run the `pio list` command over ADB with the OpenThread board *disconnected*.
+    Note the UART names present:
+
+    ```
+    $ adb shell pio list uart
+    UART6
+    ```
+
+1.  Connect the OpenThread board to the USB port on your Android Things kit.
+1.  Run the `pio list` command again, and note the new port name:
+
+    ```
+    $ adb shell pio list uart
+    UART6
+    USB1-1:1.0
+    ```
+
+1.  Find the port name constant in each activity and replace it with the value
+    for your UART:
+
+    ```java
+    private static final String UART_PORT = "USB1-1:1.0";
+    ```
+
 ## Scanner App
 The `scanner` module demonstrates how to scan for other networks. It can
 view existing networks and provision a new network from the device.

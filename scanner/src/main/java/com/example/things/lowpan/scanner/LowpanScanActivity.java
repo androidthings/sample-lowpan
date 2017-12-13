@@ -44,10 +44,12 @@ import java.util.Random;
 public class LowpanScanActivity extends Activity implements AdapterView.OnItemClickListener {
     private static final String TAG = LowpanScanActivity.class.getSimpleName();
 
-    private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
-    /* UART parameters for the LoWPAN module */
-    private static final String UART_PORT = "USB1-1:1.0";
+    // UART parameters for the LoWPAN module
+    private static final String UART_PORT = "<ENTER_PORT_NAME>";
     private static final int UART_BAUD = 115200;
+
+    // Network info
+    private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
 
     private LowpanManager mLowpanManager = LowpanManager.getManager();
     private LowpanInterface mLowpanInterface = null;
@@ -90,6 +92,11 @@ public class LowpanScanActivity extends Activity implements AdapterView.OnItemCl
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (UART_PORT.contains("ENTER_PORT_NAME")) {
+            throw new RuntimeException("You forgot to specify your board's UART port name,"
+                    +" please follow the instructions in the README");
+        }
 
         // Register a LoWPAN module connected over UART
         try {

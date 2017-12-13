@@ -50,9 +50,25 @@ import java.net.UnknownHostException;
 
 public class TransmitterActivity extends Activity {
     private static final String TAG = TransmitterActivity.class.getSimpleName();
-    /* UART parameters for the LoWPAN module */
-    private static final String UART_PORT = "USB1-1:1.0";
+
+    // UART parameters for the LoWPAN module
+    private static final String UART_PORT = "<ENTER_PORT_NAME>";
     private static final int UART_BAUD = 115200;
+
+    // Network info
+    private static final String SERVER_ADDRESS = "<ENTER_IP_ADDRESS>";
+    private static final int SERVER_PORT = 23456;
+    private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
+    private static final String LOWPAN_NETWORK = "lowpan_sample";
+
+    // Strings to display on the segment display
+    private static final String DISPLAY_CONN =  "CONN";
+    private static final String DISPLAY_READY = "REDY";
+    private static final String DISPLAY_WAIT  = "....";
+    private static final String DISPLAY_INIT =  "0000";
+    private static final String DISPLAY_EMPTY = "    ";
+    private static final String DISPLAY_INTER = "XXXX";
+    private static final String DISPLAY_ERROR = "ERR!";
 
     private UartLowpanDriver mLowpanDriver;
 
@@ -76,21 +92,6 @@ public class TransmitterActivity extends Activity {
 
     private android.widget.Button mConnectUiButton;
     private android.widget.Button mDisconnectUiButton;
-
-    // Network info
-    private static final String SERVER_ADDRESS = "<ENTER_IP_ADDRESS>";
-    private static final int SERVER_PORT = 23456;
-    private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
-    private static final String LOWPAN_NETWORK = "lowpan_sample";
-
-    // Strings to display on the segment display
-    private static final String DISPLAY_CONN =  "CONN";
-    private static final String DISPLAY_READY = "REDY";
-    private static final String DISPLAY_WAIT  = "....";
-    private static final String DISPLAY_INIT =  "0000";
-    private static final String DISPLAY_EMPTY = "    ";
-    private static final String DISPLAY_INTER = "XXXX";
-    private static final String DISPLAY_ERROR = "ERR!";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,6 +163,11 @@ public class TransmitterActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (UART_PORT.contains("ENTER_PORT_NAME")) {
+            throw new RuntimeException("You forgot to specify your board's UART port name,"
+                    +" please follow the instructions in the README");
+        }
 
         // Register a LoWPAN module connected over UART
         try {
