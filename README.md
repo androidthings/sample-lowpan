@@ -21,7 +21,9 @@ Network Co-Processor (NCP) module and install the appropriate user driver.
 ### Supported modules and firmware
 To get started with a development board, visit the OpenThread
 [Pre-Built NCP Firmware](https://openthread.io/guides/ncp/firmware) page for
-firmware binaries and flashing instructions for supported boards.
+firmware binaries and flashing instructions for supported boards. We recommend the
+[Nordic nRF52840-PDK](https://www.nordicsemi.com/eng/Products/nRF52840-Preview-DK)
+to get started.
 
 ### LoWPAN user driver
 The NCP module interfaces to Android Things through a
@@ -38,25 +40,16 @@ view existing networks and provision a new network from the device.
 
 This module requires a screen and input device.
 
-### Build and install
-On Android Studio, click on the "Run" button.
-
-If you prefer to run on the command line, type
-
-```bash
-./gradlew installDebug
-adb shell am start com.example.things.lowpan.scanner/.LowpanScanActivity
-```
-
 ### Getting started
 
-1.  Build and install the `scanner` app on the first Android Things device.
+1.  Deploy the `scanner` app module on the first Android Things device.
 1.  Tap the **Form Network** button on the display to create a new LoWPAN network
     and attach the device. The status message reports the newly created network
     name.
-1.  Build and install the `scanner` app on the second Android Things device.
+1.  Deploy the `scanner` app module on the second Android Things device.
 1.  Tap the **Scan** button on the display. Within a few moments, the network
-    info appears in the list.
+    info appears in the list. You can optionally tap the list item to join the
+    discovered network.
 1.  Finally, tap **Leave** on the first Android Things device to tear down the
     LoWPAN network.
 
@@ -67,24 +60,9 @@ The `receiver` app provisions a network called **lowpan_sample**. The
 `transmitter` app scans for networks with that name and joins the corresponding
 network automatically.
 
-### Build and install
-On Android Studio, click on the "Run" button.
-
-If you prefer to run on the command line, type
-
-```bash
-./gradlew installDebug
-adb shell am start com.example.things.lowpan.transmitter/.TransmitterActivity
-```
-
-```bash
-./gradlew installDebug
-adb shell am start com.example.things.lowpan.receiver/.ReceiverActivity
-```
-
 ### Getting started
 
-1.  Build and install the `receiver` app on the first Android Things device
+1.  Deploy the `receiver` app module on the first Android Things device
 1.  Identify the receiver device's [IP address](#discovering-the-ip-address)
     on the LoWPAN network
 1.  Open the `transmitter` module, and enter the IP address from the previous
@@ -94,7 +72,7 @@ adb shell am start com.example.things.lowpan.receiver/.ReceiverActivity
     private static final String SERVER_ADDRESS = "<ENTER_IP_ADDRESS>";
     ```
 
-1. Build and install the `transmitter` app on the second Android Things device
+1. Deploy the `transmitter` app module on the second Android Things device
 
 #### Discovering the IP address
 OpenThread network interfaces have two separate IP address identifiers:
