@@ -119,7 +119,7 @@ public class TransmitterActivity extends Activity {
 
         mUiThreadHandler = new Handler(Looper.getMainLooper());
 
-        mLowpanManager = LowpanManager.getManager();
+        mLowpanManager = LowpanManager.getInstance();
         try {
             mLowpanManager.registerCallback(mInterfaceCallback);
         } catch (LowpanException e) {

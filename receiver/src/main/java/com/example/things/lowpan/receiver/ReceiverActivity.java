@@ -75,7 +75,7 @@ public class ReceiverActivity extends Activity {
         setContentView(R.layout.activity_receiver);
         mStatus = findViewById(R.id.lowpan_status);
 
-        mLowpanManager = LowpanManager.getManager();
+        mLowpanManager = LowpanManager.getInstance();
         try {
             mLowpanManager.registerCallback(mInterfaceCallback);
         } catch (LowpanException e) {

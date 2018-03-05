@@ -51,7 +51,7 @@ public class LowpanScanActivity extends Activity implements AdapterView.OnItemCl
     // Network info
     private static final String LOWPAN_KEY = "FC4262D8F8F79502ABCD326356C610A5";
 
-    private LowpanManager mLowpanManager = LowpanManager.getManager();
+    private LowpanManager mLowpanManager = LowpanManager.getInstance();
     private LowpanInterface mLowpanInterface = null;
     private LowpanScanner mLowpanScanner = null;
     private UartLowpanDriver mLowpanDriver;
