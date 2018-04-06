@@ -168,7 +168,7 @@ public class LowpanScanActivity extends Activity implements AdapterView.OnItemCl
         mLowpanInterface.registerCallback(mStateCallback);
 
         mLowpanScanner = mLowpanInterface.createScanner();
-        mLowpanScanner.setCallback(mScanCallback, new Handler(Looper.getMainLooper()));
+        mLowpanScanner.setCallback(new Handler(Looper.getMainLooper()), mScanCallback);
 
         mInterfaceStatus.setText(R.string.ready_to_scan);
         mScanButton.setEnabled(true);
