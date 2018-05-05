@@ -26,7 +26,7 @@ android {
 
 dependencies {
     compileOnly 'com.google.android.things:androidthings:1.0'
-    implementation 'com.google.android.things.contrib:driver-lowpan:0.4'
+    implementation 'com.google.android.things.contrib:driver-lowpan:1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.google.android.things.contrib:driver-rainbowhat:0.11'
+    implementation 'com.google.android.things.contrib:driver-rainbowhat:1.0'
 }
