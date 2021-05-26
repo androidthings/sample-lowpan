@@ -6,6 +6,10 @@ three modules in this sample which demonstrate how to scan for networks,
 transmit data, and receive data. To learn more about LoWPAN networks, see the
 [LoWPAN API guide](https://developer.android.com/things/sdk/apis/lowpan.html).
 
+> **Note:** The Android Things Console will be turned down for non-commercial
+> use on January 5, 2022. For more details, see the
+> [FAQ page](https://developer.android.com/things/faq).
+
 ## Pre-requisites
 
 - 2 Android Things compatible boards
